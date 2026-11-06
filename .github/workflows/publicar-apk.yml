@@ -1,0 +1,30 @@
+name: Publicar APK
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Enlace del APK de Expo"
+        required: true
+      version:
+        description: "Versión (ej. 0.9.0)"
+        required: true
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar APK
+        run: |
+          curl -fsSL -o "jbike-${{ inputs.version }}.apk" "${{ inputs.url }}"
+          cp "jbike-${{ inputs.version }}.apk" jbike.apk
+          ls -la *.apk
+      - name: Crear versión y subir el APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ inputs.version }}" "jbike-${{ inputs.version }}.apk" jbike.apk \
+            --repo "${{ github.repository }}" \
+            --title "J. BIKE ${{ inputs.version }}" \
+            --notes "App J. BIKE para Android, versión ${{ inputs.version }}." \
+            --latest
